@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart - M-Online</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+</head>
+<style>
+  .continue-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 999px;            /* pill shape */
+    background: linear-gradient(90deg, #22c55e, #3b82f6);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .continue-btn:hover {
+    color: #fff;
+    transform: translateX(-4px);     /* slides left a little */
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+  }
+</style>
+<body>
+
+  <div class="container my-4">
+    <h2>Your Cart</h2>
+    <a href="index.php" class="continue-btn">
+      <i class="fas fa-shopping-cart"></i> Continue shopping
+    </a>
+
+    <table class="table mt-3">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Price (UGSh)</th>
+          <th>Qty</th>
+          <th>Subtotal (UGSh)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="cart-body"></tbody>
+    </table>
+
+    <h4>Total: <span id="cart-total">0</span> UGSh</h4>
+    <button id="clear-btn" class="btn btn-outline-danger mt-2">Clear cart</button>
+  </div>
+
+  <script>
+    // 1. Get the saved cart (the same "cart" the Add To Cart buttons save)
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    const body = document.getElementById("cart-body");
+    const totalEl = document.getElementById("cart-total");
+
+    function showCart() {
+      body.innerHTML = "";
+      let total = 0;
+
+      // 2. Group the same product together: Shoes, Shoes -> Shoes x2
+      const items = {};
+      cart.forEach(function (p) {
+        if (!items[p.name]) {
+          items[p.name] = { price: p.price, qty: 0 };
+        }
+        items[p.name].qty++;
+      });
+
+      // 3. Make one table row per product
+      for (const name in items) {
+        const item = items[name];
+        const subtotal = item.price * item.qty;
+        total += subtotal;
+
+        body.innerHTML += `
+          <tr>
+            <td>${name}</td>
+            <td>${item.price.toLocaleString()}</td>
+            <td>${item.qty}</td>
+            <td>${subtotal.toLocaleString()}</td>
+            <td><button class="btn btn-sm btn-danger remove-btn" data-name="${name}">Remove</button></td>
+          </tr>`;
+      }
+
+      if (cart.length === 0) {
+        body.innerHTML = '<tr><td colspan="5">Your cart is empty.</td></tr>';
+      }
+
+      totalEl.textContent = total.toLocaleString();
+    }
+
+    // 4. Remove button: take that product out of the cart
+    body.addEventListener("click", function (e) {
+      if (e.target.classList.contains("remove-btn")) {
+        const name = e.target.dataset.name;
+        cart = cart.filter(function (p) { return p.name !== name; });
+        localStorage.setItem("cart", JSON.stringify(cart));
+        showCart();
+      }
+    });
+
+    // 5. Clear cart button
+    document.getElementById("clear-btn").addEventListener("click", function () {
+      cart = [];
+      localStorage.setItem("cart", JSON.stringify(cart));
+      showCart();
+    });
+
+    showCart();   // show the cart when the page opens
+  </script>
+
+</body>
+</html>
